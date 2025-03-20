@@ -1,0 +1,20 @@
+{
+    "adminNav": {
+      "dashboard": "Dashboard",
+      "userManagement": {
+        "title": "User Management",
+        "addUser": "Add User",
+        "editUser": "Edit User",
+        "removeUser": "Remove User"
+      },
+      "deviceManagement": {
+        "title": "Device Management",
+        "addDevice": "Add Device",
+        "editDevice": "Edit Device",
+        "removeDevice": "Remove Device"
+      },
+      "settings": "Settings",
+      "logout": "Logout"
+    }
+  }
+  

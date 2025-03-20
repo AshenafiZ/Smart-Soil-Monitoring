@@ -16,20 +16,26 @@ type Location = {
   name: string;
   coords: LatLngTuple; 
   type: string;
+  moisture?: number;
+  pH?: number;
+  nitrogen?: number;
+  phosphorus?: number;
+  potassium?: number;
+  time?: string;
 };
 
 const EthiopiaMap: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true); // Ensure rendering happens only on the client
+    setIsClient(true); 
   }, []);
 
   if (!isClient) return null;
 
   const ethiopiaBounds: LatLngBoundsExpression = [
-    [14.9, 33.0], // Top-left corner of Ethiopia
-    [3.4, 48.0],  // Bottom-right corner of Ethiopia
+    [14.2, 38.0], 
+    [4.0, 42.0],  
   ];
 
   type SoilIcon = Icon;
@@ -77,10 +83,10 @@ const soilLocations = [
   { name: 'Farming Area', coords: [9.04, 38.73], type: 'Farming' },
 ];
 const locations: Location[] = [
-  { name: 'Addis Ababa', coords: [9.03, 38.74], type: 'Capital' },
-  { name: 'Addis Ababa Hospital', coords: [9.05, 38.76], type: 'Hospital' },
-  { name: 'Addis Ababa School', coords: [9.04, 38.73], type: 'Healthy Soil' },
-  { name: 'Other Location', coords: [9.06, 38.78], type: 'Other' },
+  { name: 'Ethiopia Soil Nutrient Mapping', coords: [9.03, 38.74], type: 'Healthy Soil', moisture: 70, pH: 6, nitrogen: 1240, phosphorus: 430, potassium: 45, time:'15/2/2017 11:26:34 Am' },
+  { name: 'Ethiopia Soil Nutrient Mapping', coords: [9.05, 38.76], type: 'Healthy Soil', moisture: 30, pH: 12, nitrogen: 240, phosphorus: 130, potassium: 245, time:'15/2/2017 11:26:34 Am' },
+  { name: 'Ethiopia Soil Nutrient Mapping', coords: [9.04, 38.73], type: 'Healthy Soil', moisture: 50, pH: 4, nitrogen: 120, phosphorus: 30, potassium: 445, time:'15/2/2017 11:26:34 Am' },
+  { name: 'Ethiopia Soil Nutrient Mapping', coords: [9.06, 38.78], type: 'Healthy Soil', moisture: 90, pH: 7, nitrogen: 220, phosphorus: 40, potassium: 450, time:'15/2/2017 11:26:34 Am' },
 ];
 // Dynamic function to get the right icon based on soil type
 const getSoilIcon = (type: string): SoilIcon => {
@@ -129,7 +135,12 @@ const getSoilIcon = (type: string): SoilIcon => {
               <Tooltip direction="top" offset={[0, -10]} opacity={1}>
                 <div>
                   <h3 className="text-sm font-bold">{location.name}</h3>
-                  <p className="text-xs">{`Type: ${location.type}`}</p>
+                  <p className="text-xs">{`Nitrogen: ${location.nitrogen}`}</p>
+                  <p className="text-xs">{`Phosphorus: ${location.phosphorus}`}</p>
+                  <p className="text-xs">{`Potassium: ${location.potassium}`}</p>
+                  <p className="text-xs">{`Soil Moisture: ${location.moisture}`}</p>
+                  <p className="text-xs">{`pH value: ${location.pH}`}</p>
+                  <p className="text-xs">{`Last Updated: ${location.time}`}</p>
                   <p className="text-xs">{`Coordinates: ${location.coords[0]}, ${location.coords[1]}`}</p>
                 </div>
               </Tooltip>

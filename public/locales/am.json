@@ -1,0 +1,33 @@
+{
+    "navbar": {
+      "home": "መነሻ",
+      "about": "ስለ እኛ",
+      "contact": "አግኙን"
+    },
+    "home": {
+      "title": "እንኳን ደህና መጡ",
+      "description": "ይህ የብዙ ቋንቋ ድረ-ገጽ ምሳሌ ነው።"
+    },
+    "buttons": {
+      "change_language": "ቋንቋን ወደ እንግሊዝኛ ቀይር",
+      "learn_more": "ተጨማሪ ይማሩ"
+    },
+    
+    "dashboard": "ዳሽቦርድ",
+    "userManagement": {
+      "title": "የተጠቃሚ አስተዳደር",
+      "addUser": "ተጠቃሚ አክል",
+      "editUser": "ተጠቃሚ አስተካክል",
+      "removeUser": "ተጠቃሚ አስወግድ"
+    },
+    "deviceManagement": {
+      "title": "የመሳሪያ አስተዳደር",
+      "addDevice": "መሳሪያ አክል",
+      "editDevice": "መሳሪያ አስተካክል",
+      "removeDevice": "መሳሪያ አስወግድ"
+    },
+    "settings": "ቅንብሮች",
+    "logout": "ውጣ"
+  
+}
+  

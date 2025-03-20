@@ -1,4 +1,3 @@
-// pages/map.tsx
 "use client"
 import React, { useEffect } from 'react';
 import L from 'leaflet';

@@ -1,0 +1,20 @@
+{
+    "adminNav": {
+      "dashboard": "ዳሽቦርድ",
+      "userManagement": {
+        "title": "የተጠቃሚ አስተዳደር",
+        "addUser": "ተጠቃሚ አክል",
+        "editUser": "ተጠቃሚ አስተካክል",
+        "removeUser": "ተጠቃሚ አስወግድ"
+      },
+      "deviceManagement": {
+        "title": "የመሳሪያ አስተዳደር",
+        "addDevice": "መሳሪያ አክል",
+        "editDevice": "መሳሪያ አስተካክል",
+        "removeDevice": "መሳሪያ አስወግድ"
+      },
+      "settings": "ቅንብሮች",
+      "logout": "ውጣ"
+    }
+  }
+  
