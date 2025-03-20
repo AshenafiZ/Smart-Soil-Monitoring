@@ -9,21 +9,24 @@ const LanguageSwitcher = () => {
   const { t } = useTranslation();
   const handleSelectChange = (value: 'en' | 'am') => {
     changeLanguage(value);
+    localStorage.setItem('locale', value);
   }
 
   return (
     <>
-    <Select onValueChange={handleSelectChange}>
-      <SelectTrigger>
-        <SelectValue placeholder='Language' />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectItem value="en">english</SelectItem>
-          <SelectItem value="am">amharic</SelectItem>
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+    <div className="max-w-96 p-4">
+      <Select onValueChange={handleSelectChange}>
+        <SelectTrigger>
+          <SelectValue placeholder='Language' />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectItem value="en">english</SelectItem>
+            <SelectItem value="am">amharic</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </div>
     </>
 
   );

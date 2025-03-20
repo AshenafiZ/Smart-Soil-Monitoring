@@ -32,16 +32,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <LanguageProvider>
-          <div className="flex">
-            <Navigation  >
-              <div>hello</div>
-            </Navigation>
-            {/* <Sidebar /> */}
-            <div className="flex-1 p-4">
-              {/* <LanguageSwitcher /> */}
-              {children}
-            </div>
-          </div>
+          <Navigation />
+          {children}
         </LanguageProvider>
       </body>
     </html>

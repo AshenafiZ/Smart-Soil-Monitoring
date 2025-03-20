@@ -1,30 +1,32 @@
 'use client';
-
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/useTranslation";
 import LanguageSwitcher from "./LanguageSwitcher";
 
-type Role = "admin" | "farmer" | "advisor" | "technician";
-
+type Role = "main" | "admin" | "farmer" | "advisor" | "technician";
 type NavItem = {
   name: string;
   path: string;
 };
-
 type User = {
   name?: string;
   image?: string;
 };
-
 const roles: Record<Role, NavItem[]> = {
+  main: [
+    { name: "home", path: "/" },
+    { name: "about", path: "/about" },
+    { name: "contact", path: "/contact" },
+    { name: "signup", path: "/signup" },
+    { name: "login", path: "/login" },
+  ],
   admin: [
-    { name: "dashboard", path: "/admin/dashboard" },
+    { name: "dashboard", path: "/admin" },
     { name: "device_management", path: "/admin/devices" },
     { name: "user_management", path: "/admin/users" },
     { name: "map", path: "/admin/map" },
@@ -47,56 +49,53 @@ const roles: Record<Role, NavItem[]> = {
     { name: "maintain_device", path: "/technician/maintain-device" },
   ],
 };
-
 type LayoutProps = {
   role?: Role;
   user?: User;
-  children: React.ReactNode;
 };
 
-export default function Layout({ role = "farmer", user, children }: LayoutProps) {
-  return (
-    <div className="flex flex-col h-screen">
-      <Navigation role={role} user={user} />
-      <main className="flex-1 overflow-auto p-4 mt-16">{children}</main>
-    </div>
-  );
-}
-
-function Navigation({ role = "farmer", user }: { role: Role; user?: User }) {
+const Navigation = ({role = "main", user = {name: "Asheanfi"} }: LayoutProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
   return (
-    <nav className="w-full bg-white shadow-md p-4 flex flex-row justify-between items-center fixed top-0 left-0 right-0 z-50">
-      <div className="flex items-center gap-4">
-        <h2>Smart Soil Monitoring</h2>
-        <LanguageSwitcher />
+    <div className="flex justify-between bg-blue-600">
+      <div>
+        <div className="flex items-center gap-4">
+          <h2>Smart Soil Monitoring</h2>
+          <LanguageSwitcher />
+        </div>
       </div>
-      <div className="hidden lg:flex items-center gap-4">
-        <Sidebar role={role} pathname={pathname} t={t} />
-      </div>
-      <div className="lg:hidden flex items-center gap-4">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline">☰</Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-64 p-4">
+      <div>
+        <div className="flex gap-4 ">
+          <div className="hidden lg:flex items-center gap-4">
             <Sidebar role={role} pathname={pathname} t={t} />
-          </SheetContent>
-        </Sheet>
+          </div>
+          <div className="lg:hidden flex items-center gap-4">
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline">☰</Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-64 p-4">
+                <Sidebar role={role} pathname={pathname} t={t} />
+              </SheetContent>
+            </Sheet>
+          </div>
+          <div className="flex items-center flex-col group gap-4">
+            <Avatar className="">
+              <AvatarImage src={user?.image || "/default-avatar.png"} alt="User Avatar" />
+              <AvatarFallback className="hidden">{user?.name?.charAt(0) || "U"}</AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium group-hover:block hidden">{user?.name || "Guest"}</span>
+          </div>
+        </div>
       </div>
-      <div className="flex items-center gap-4">
-        <Avatar>
-          <AvatarImage src={user?.image || "/default-avatar.png"} alt="User Avatar" />
-          <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
-        </Avatar>
-        <span className="text-sm font-medium">{user?.name || "Guest"}</span>
-      </div>
-    </nav>
-  );
+    </div>
+  )
 }
+
+export default Navigation;
 
 type SidebarProps = {
   role: Role;
@@ -110,11 +109,12 @@ function Sidebar({ role, pathname, t }: SidebarProps) {
 
   return (
     <div>
-      <h2 className="text-lg font-bold mb-4 underline">{title}</h2>
-      <Separator />
-      <ul className="mt-4">
+      {/* <h2 className="text-lg font-bold mb-4 underline">{title}</h2> */}
+      {/* <Separator /> */}
+      <ul className="mt-4 flex gap-3">
         {roles[role]?.map((item) => {
-          const translatedItem = t(item.name);
+          const translatedItem = t(`navigation.${item.name}`);
+          {console.log(translatedItem)}
           const menuTitle = typeof translatedItem === "string" ? translatedItem : translatedItem.title;
           return (
             <li key={item.path}>

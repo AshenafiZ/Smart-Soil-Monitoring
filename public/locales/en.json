@@ -1,32 +1,20 @@
 {
-    "navbar": {
+    "navigation": {
       "home": "Home",
       "about": "About",
-      "contact": "Contact"
-    },
-    "home": {
-      "title": "Welcome to our website",
-      "description": "This is an example of a multilingual website."
-    },
-    "buttons": {
-      "change_language": "Switch to Amharic",
-      "learn_more": "Learn More"
-    },
+      "contact": "Contact",
+      "signup": "Signup",
+      "login": "Login",
+      "addUser": "Add User",
       "dashboard": "Dashboard",
-      "userManagement": {
-        "title": "User Management",
-        "addUser": "Add User",
-        "editUser": "Edit User",
-        "removeUser": "Remove User"
-      },
-      "deviceManagement": {
-        "title": "Device Management",
-        "addDevice": "Add Device",
-        "editDevice": "Edit Device",
-        "removeDevice": "Remove Device"
-      },
+      "editUser": "Edit User",
+      "removeUser": "Remove User",
+      "addDevice": "Add Device",
+      "editDevice": "Edit Device",
+      "removeDevice": "Remove Device",
+      "maintainDevice": "Maintain Device",
       "settings": "Settings",
       "logout": "Logout"
-    
+    } 
 }
   

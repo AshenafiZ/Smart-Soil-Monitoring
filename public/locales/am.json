@@ -1,33 +1,20 @@
 {
-    "navbar": {
-      "home": "መነሻ",
-      "about": "ስለ እኛ",
-      "contact": "አግኙን"
-    },
-    "home": {
-      "title": "እንኳን ደህና መጡ",
-      "description": "ይህ የብዙ ቋንቋ ድረ-ገጽ ምሳሌ ነው።"
-    },
-    "buttons": {
-      "change_language": "ቋንቋን ወደ እንግሊዝኛ ቀይር",
-      "learn_more": "ተጨማሪ ይማሩ"
-    },
-    
+  "navigation": {
+    "home": "መነሻ",
+    "about": "ስለ እኛ",
+    "contact": "አግኙን",
+    "signup":"ተመዝገብ",
+    "login": "ግባ",
+    "addUser": "ተጠቃሚ አክል",
     "dashboard": "ዳሽቦርድ",
-    "userManagement": {
-      "title": "የተጠቃሚ አስተዳደር",
-      "addUser": "ተጠቃሚ አክል",
-      "editUser": "ተጠቃሚ አስተካክል",
-      "removeUser": "ተጠቃሚ አስወግድ"
-    },
-    "deviceManagement": {
-      "title": "የመሳሪያ አስተዳደር",
-      "addDevice": "መሳሪያ አክል",
-      "editDevice": "መሳሪያ አስተካክል",
-      "removeDevice": "መሳሪያ አስወግድ"
-    },
+    "editUser": "ተጠቃሚ አስተካክል",
+    "removeUser": "ተጠቃሚ አስወግድ",
+    "addDevice": "መሳሪያ አክል",
+    "editDevice": "መሳሪያ አስተካክል",
+    "removeDevice": "መሳሪያ አስወግድ",
+    "maintainDevice": "መሳሪያ ተግን",
     "settings": "ቅንብሮች",
     "logout": "ውጣ"
-  
+  }  
 }
   
