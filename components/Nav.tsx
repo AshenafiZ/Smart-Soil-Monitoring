@@ -82,12 +82,12 @@ const Navigation = ({role = "main", user = {name: "Asheanfi"} }: LayoutProps) =>
               </SheetContent>
             </Sheet>
           </div>
-          <div className="flex items-center flex-col group gap-4">
+          <div className="flex items-center flex-col group gap-4 relative ">
             <Avatar className="">
               <AvatarImage src={user?.image || "/default-avatar.png"} alt="User Avatar" />
-              <AvatarFallback className="hidden">{user?.name?.charAt(0) || "U"}</AvatarFallback>
+              <AvatarFallback className="">{user?.name?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
-            <span className="text-sm font-medium group-hover:block hidden">{user?.name || "Guest"}</span>
+            <span className="absolute left-0 text-sm font-medium group-hover:visible invisible">{user?.name || "Guest"}</span>
           </div>
         </div>
       </div>
