@@ -3,8 +3,7 @@ import en from "@/public/locales/en.json";
 import am from "@/public/locales/am.json";
 import { LanguageContext, Locale } from "@/context/LanguageContext";
 
-
-const translations: Record<Locale, typeof en> = { en, am };
+const translations: Record<Locale, typeof am> = { en, am };
 
 const getNestedValue = (obj: any, path: string): string => {
   return path.split(".").reduce((acc, key) => acc?.[key], obj) || path;
