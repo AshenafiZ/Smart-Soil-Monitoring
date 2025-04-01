@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/app/firebase/config";
 
 type User = {
@@ -10,7 +10,7 @@ type User = {
   email: string;
   role: string;
   photo?: string;
-  createdAt: string;
+  createdAt: any; // Will handle both string and Timestamp
 };
 
 export default function UsersList() {
@@ -18,23 +18,40 @@ export default function UsersList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "users"));
-        const usersData = querySnapshot.docs.map((doc) => ({
+    const unsubscribe = onSnapshot(collection(db, "users"), (querySnapshot) => {
+      const usersData = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        let createdAt = data.createdAt;
+
+        // Check if createdAt exists
+        if (createdAt) {
+          if (typeof createdAt === "string") {
+            createdAt = new Date(createdAt); // Parse string into a Date object
+          } else if (createdAt.toDate) {
+            createdAt = createdAt.toDate(); // If it's a Firestore Timestamp, convert to Date
+          } else {
+            // Handle case where the date is not in expected format
+            console.warn(`Unexpected date format: ${createdAt}`);
+            createdAt = new Date(); // Default to the current date if it's invalid
+          }
+        } else {
+          // If no createdAt, set it to the current date
+          createdAt = new Date();
+        }
+
+        return {
           id: doc.id,
-          ...doc.data(),
-        })) as User[];
+          ...data,
+          createdAt,
+        } as User;
+      });
 
-        setUsers(usersData);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setUsers(usersData);
+      setLoading(false);
+    });
 
-    fetchUsers();
+    // Cleanup
+    return () => unsubscribe();
   }, []);
 
   if (loading) return <p>Loading users...</p>;
@@ -67,7 +84,9 @@ export default function UsersList() {
               </td>
               <td className="border border-gray-300 p-2">{user.email}</td>
               <td className="border border-gray-300 p-2">{user.role}</td>
-              <td className="border border-gray-300 p-2">{new Date(user.createdAt).toLocaleDateString()}</td>
+              <td className="border border-gray-300 p-2">
+                {new Date(user.createdAt).toLocaleDateString()} {/* Format date */}
+              </td>
             </tr>
           ))}
         </tbody>
