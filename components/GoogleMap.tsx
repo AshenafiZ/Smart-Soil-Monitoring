@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -26,9 +26,30 @@ interface GeoJsonData {
   type: "FeatureCollection";
   features: GeoJsonFeature[];
 }
+const FlyToLocation = ({ lat, lng, triggerFly }: { lat: number | null; lng: number | null; triggerFly: boolean }) => {
+  const map = useMap();
+
+  if (triggerFly && lat !== null && lng !== null) {
+    map.flyTo([lat, lng], 12, { animate: true, duration: 2 });
+  }
+
+  return lat !== null && lng !== null ? (
+    <Marker position={[lat, lng]}>
+      <Popup>Selected Location</Popup>
+    </Marker>
+  ) : null;
+};
 
 const EthiopiaMap = () => {
   const levels = ["region", "zone", "wereda", "kebele"] as const;
+  const [lat, setLat] = useState<number | null>(null);
+    const [lng, setLng] = useState<number | null>(null);
+    const [triggerFly, setTriggerFly] = useState(false);
+  
+    const handleFly = () => {
+      setTriggerFly(true);
+      setTimeout(() => setTriggerFly(false), 500); // Reset fly state after flying
+    };
   type AdminLevel = (typeof levels)[number];
 
   const propertyKeys: { [key in AdminLevel]: string } = {
@@ -70,7 +91,7 @@ const EthiopiaMap = () => {
     if (mapRef.current && pendingFeature) {
       console.log("Map is now initialized. Zooming to boundary...");
       zoomToBoundary(pendingFeature);
-      setPendingFeature(null); // Reset pending feature after zooming
+      setPendingFeature(null); 
     }
   }, [mapRef.current, pendingFeature]);
 
@@ -87,7 +108,12 @@ const EthiopiaMap = () => {
       if (foundFeature) {
         const newBoundary = { type: "FeatureCollection", features: [foundFeature] };
         setSelectedBoundary(newBoundary);
-        console.log("Boundary set!");
+        setLat(getCenterOfPolygon(foundFeature.geometry)?.[0] ?? null)
+        setLng(getCenterOfPolygon(foundFeature.geometry)?.[1] ?? null)
+        console.log("Boundary set!", lat, lng);
+        setTriggerFly(true);
+        setTimeout(() => setTriggerFly(false), 500); 
+        console.log("Boundary set! nnnn");
 
         if (mapRef.current) {
           zoomToBoundary(foundFeature);
@@ -181,6 +207,7 @@ const EthiopiaMap = () => {
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {selectedBoundary && <GeoJSON data={selectedBoundary} />}
+        <FlyToLocation lat={lat} lng={lng} triggerFly={triggerFly} />
       </MapContainer>
     </div>
   );
