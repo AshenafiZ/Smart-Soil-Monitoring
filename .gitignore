@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+public/map/admin4.json
+public/map/admin3.json
+public/map/admin2.json
+public/map/admin1.json
