@@ -44,12 +44,16 @@ type Location = {
   potassium?: number;
   time?: string;
 };
+type LocationData = {
+  name: string;
+  coordinates: [number, number];
+};
 
 const FlyToLocation = ({ lat, lng, zoom, triggerFly }: { lat: number | null; lng: number | null; zoom: number | null; triggerFly: boolean }) => {
   const map = useMap();
 
   if (triggerFly && lat !== null && lng !== null) {
-    map.flyTo([lat, lng], zoom || undefined , { animate: true, duration: 2 });
+    map.flyTo([lat, lng], zoom || 4 , { animate: true, duration: 2 });
   }
 
   return lat !== null && lng !== null ? (
@@ -64,7 +68,11 @@ const EthiopiaMap = () => {
   const [lng, setLng] = useState<number | null>(null);
   const [zoom, setZoom] = useState<number | null>(null);
   const [triggerFly, setTriggerFly] = useState(false);
-  
+  const [locationNames, setLocationNames] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [suggestions, setSuggestions] = useState<LocationData[]>([]);
+  const [recentSearches, setRecentSearches] = useState<LocationData[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
   type AdminLevel = (typeof levels)[number];
 
   const propertyKeys: { [key in AdminLevel]: string } = {
@@ -125,9 +133,19 @@ const EthiopiaMap = () => {
   useEffect(() => {
     const loadGeoJson = async (level: AdminLevel, path: string) => {
       try {
+        const key = propertyKeys[level];
         const response = await fetch(path); 
         const data = await response.json();
         setGeoJsonData((prev) => ({ ...prev, [level]: data }));
+        const names = data.features.map((feature: any) => 
+          feature.properties[key] || 
+          feature.properties[key] || 
+          feature.properties[key] || 
+          feature.properties[key] || 
+          "Unknown"
+        );
+        
+        setLocationNames((prev) => [...prev, ...names]);
       } catch (error) {
         console.error(`Failed to load ${level} data`, error);
       }
@@ -140,8 +158,12 @@ const EthiopiaMap = () => {
       loadGeoJson("kebele", "/map/admin4.json");
     }
   }, []);
-  
-
+  useEffect(() => {
+      const storedSearches = localStorage.getItem("recentSearches");
+      if (storedSearches) {
+        setRecentSearches(JSON.parse(storedSearches));
+      }
+    }, []);
   useEffect(() => {
     if (mapRef.current && pendingFeature) {
       console.log("Map is now initialized. Zooming to boundary...");
@@ -150,32 +172,42 @@ const EthiopiaMap = () => {
   }, [mapRef.current, pendingFeature]);
 
   const handleSearch = (searchTerm: string) => {
+    if (!searchTerm.trim()) return;
+
+    let allNames: string[] = [];
+    
     for (const level of levels) {
-      if (!geoJsonData[level]) continue;
+        if (!geoJsonData[level]) continue;
+        
+        const key = propertyKeys[level];
 
-      const key = propertyKeys[level];
+        const levelNames = geoJsonData[level]?.features.map(
+            (feature: any) => feature.properties[key]
+        );
+        allNames = [...allNames, ...levelNames];
 
-      const foundFeature = geoJsonData[level]?.features.find(
-        (feature) => feature.properties[key]?.toLowerCase() === searchTerm.toLowerCase()
-      );
+        const foundFeature = geoJsonData[level]?.features.find(
+            (feature) => feature.properties[key]?.toLowerCase() === searchTerm.toLowerCase()
+        );
 
-      if (foundFeature) {
-        const newBoundary: GeoJsonData = { type: "FeatureCollection", features: [foundFeature] };
-        setSelectedBoundary(newBoundary);
-        setLat(getCenterOfPolygon(foundFeature.geometry)?.[0] ?? null)
-        setLng(getCenterOfPolygon(foundFeature.geometry)?.[1] ?? null)
-        setZoom(getZoomLevel(L.geoJSON(foundFeature).getBounds()));
-        console.log("Boundary set!", lat, lng);
-        setTriggerFly(true);
-        setTimeout(() => setTriggerFly(false), 500); 
-        console.log("Boundary set! nnnn");
-        return;
-      }
+        if (foundFeature) {
+            const newBoundary: GeoJsonData = { type: "FeatureCollection", features: [foundFeature] };
+            setSelectedBoundary(newBoundary);
+            setLat(getCenterOfPolygon(foundFeature.geometry)?.[0] ?? null);
+            setLng(getCenterOfPolygon(foundFeature.geometry)?.[1] ?? null);
+            setZoom(getZoomLevel(L.geoJSON(foundFeature).getBounds()));
+
+            console.log("Boundary set!", lat, lng);
+            setTriggerFly(true);
+            setTimeout(() => setTriggerFly(false), 500); 
+            console.log("Boundary set!");
+
+            return;
+        }
     }
 
     setSelectedBoundary(null);
-  };
-
+};
   const getCenterOfPolygon = (geometry: { coordinates: any; type: string }) => {
     if (geometry.type !== "Polygon" && geometry.type !== "MultiPolygon") return null;
 
@@ -202,10 +234,16 @@ const EthiopiaMap = () => {
 
   const getZoomLevel = (bounds: L.LatLngBounds) => {
     const area = bounds.getSouthWest().distanceTo(bounds.getNorthEast());
-    if (area > 2000000) return 6;
-    if (area > 1000000) return 8;
-    if (area > 500000) return 10;
-    return 12;
+    if (area > 2000000) {
+      return 6;
+    } else if(area > 100000) {
+      return 8;
+    } else if(area > 5000) {
+      return 10;
+    } else {
+      return 12;
+    }
+    
   };
   const locations: Location[] = [
     { name: 'Ethiopia Soil Nutrient Mapping', coords: [9.03, 38.74], type: 'Healthy Soil', moisture: 70, pH: 6, nitrogen: 1240, phosphorus: 430, potassium: 45, time:'15/2/2017 11:26:34 Am' },
@@ -245,7 +283,6 @@ const EthiopiaMap = () => {
           onChange={(e) => handleSearch(e.target.value)}
         />
       </div>
-
       <MapContainer
         center={[9, 39]}
         zoom={6}
