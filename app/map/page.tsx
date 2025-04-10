@@ -1,4 +1,6 @@
 "use client";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "@/app/firebase/config";
 import dynamic from "next/dynamic";
 import { useEffect, useState, useRef } from "react";
 import "leaflet/dist/leaflet.css";
@@ -6,7 +8,6 @@ import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import L, { LatLngBoundsExpression, LatLngTuple, Icon } from 'leaflet';
 import { useMap } from "react-leaflet";
-import SearchBar from "./SearchBar";
 
 const MapContainer = dynamic(() => import("react-leaflet").then(mod => mod.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import("react-leaflet").then(mod => mod.TileLayer), { ssr: false });
@@ -30,7 +31,7 @@ interface GeoJsonFeature {
     coordinates: any;
   };
 }
-export interface GeoJsonData {
+interface GeoJsonData {
   type: "FeatureCollection";
   features: GeoJsonFeature[];
 }
@@ -45,6 +46,17 @@ type Location = {
   potassium?: number;
   time?: string;
 };
+type Location1 = {
+    id: string;
+    latitude: number;
+    longitude: number;
+    moisture: number;
+    nitrogen: number;
+    potassium: number;
+    phosphorus: number;
+    phLevel: number;
+    timestamp: any; 
+  };
 type LocationData = {
   name: string;
   coordinates: [number, number];
@@ -71,8 +83,8 @@ const EthiopiaMap = () => {
   const [triggerFly, setTriggerFly] = useState(false);
   const [locationNames, setLocationNames] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [suggestions, setSuggestions] = useState<LocationData[]>([]);
-  const [recentSearches, setRecentSearches] = useState<LocationData[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
   type AdminLevel = (typeof levels)[number];
 
@@ -91,7 +103,7 @@ const EthiopiaMap = () => {
   });
 
   const [selectedBoundary, setSelectedBoundary] = useState<GeoJsonData | null>(null);
-  // const [pendingFeature, setPendingFeature] = useState<GeoJsonFeature | null>(null);
+  const [pendingFeature, setPendingFeature] = useState<GeoJsonFeature | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   type SoilIcon = Icon;
   
@@ -165,28 +177,35 @@ const EthiopiaMap = () => {
         setRecentSearches(JSON.parse(storedSearches));
       }
     }, []);
-  // useEffect(() => {
-  //   if (mapRef.current && pendingFeature) {
-  //     console.log("Map is now initialized. Zooming to boundary...");
-  //     setPendingFeature(null); 
-  //   }
-  // }, [mapRef.current, pendingFeature]);
-    console.log(locationNames);
+  useEffect(() => {
+    if (mapRef.current && pendingFeature) {
+      console.log("Map is now initialized. Zooming to boundary...");
+      setPendingFeature(null); 
+    }
+  }, [mapRef.current, pendingFeature]);
+
   const handleSearch = (searchTerm: string) => {
     if (!searchTerm.trim()) return;
-
-    // let allNames: string[] = [];
+    setSearchTerm(searchTerm);
+    let allNames: string[] = [];
     
     for (const level of levels) {
         if (!geoJsonData[level]) continue;
         
         const key = propertyKeys[level];
 
-        // const levelNames = geoJsonData[level]?.features.map(
-        //     (feature: any) => feature.properties[key]
-        // );
-        // allNames = [...allNames, ...levelNames];
-
+        const levelNames = geoJsonData[level]?.features.map(
+            (feature: any) => feature.properties[key]
+        );
+        allNames = [...allNames, ...levelNames];
+        if (searchTerm.length > 1) {
+            const filtered = allNames.filter((loc) =>
+              loc.toLowerCase().startsWith(searchTerm.toLowerCase())
+            );
+            setSuggestions(filtered);
+          } else {
+            setSuggestions([]);
+          }
         const foundFeature = geoJsonData[level]?.features.find(
             (feature) => feature.properties[key]?.toLowerCase() === searchTerm.toLowerCase()
         );
@@ -206,9 +225,20 @@ const EthiopiaMap = () => {
             return;
         }
     }
-
+    console.log(allNames)
     setSelectedBoundary(null);
 };
+const handleSelectLocation = (location: string) => {
+    // setSelectedLocation(location);
+    setSearchTerm(location);
+    setSuggestions([]);
+
+    // Update recent searches
+    const updatedSearches = [location, ...recentSearches.filter((item) => item !== location)];
+    setRecentSearches(updatedSearches.slice(0, 5)); 
+    localStorage.setItem("recentSearches", JSON.stringify(updatedSearches));
+  };
+
   const getCenterOfPolygon = (geometry: { coordinates: any; type: string }) => {
     if (geometry.type !== "Polygon" && geometry.type !== "MultiPolygon") return null;
 
@@ -281,15 +311,37 @@ const EthiopiaMap = () => {
           type="text"
           placeholder="Search Place"
           className="border p-2 rounded w-full"
+          value={searchTerm}
           onChange={(e) => handleSearch(e.target.value)}
         />
+        {recentSearches.length > 0 && (
+          <div className="mt-2">
+            <h3 className="text-sm font-bold">Recent Searches</h3>
+            <ul className="border bg-white shadow-md">
+              {recentSearches.map((loc, index) => (
+                <li key={index} className="p-2 hover:bg-gray-200 cursor-pointer" onClick={() => handleSelectLocation(loc)}>
+                  {loc}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {suggestions.length > 0 && (
+          <ul className="border mt-2 bg-white shadow-md">
+            {suggestions.map((loc, index) => (
+              <li key={index} className="p-2 hover:bg-gray-200 cursor-pointer" onClick={() => handleSelectLocation(loc)}>
+                {loc}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-      {/* <SearchBar places={geoJsonData['kebele']} /> */}
       <MapContainer
         center={[9, 39]}
         zoom={6}
         style={{ height: "500px", width: "100%" }}
         attributionControl={false}
+        scrollWheelZoom={false}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {selectedBoundary && <GeoJSON data={selectedBoundary} />}
@@ -316,3 +368,78 @@ const EthiopiaMap = () => {
 };
 
 export default EthiopiaMap;
+
+export function LiveTrackingText() {
+  const [locations, setLocations] = useState<Location1[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "live"), (querySnapshot) => {
+      const locationsData = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        let timestamp = data.timestamp;
+
+        // Check if timestamp exists
+        if (timestamp) {
+          if (typeof timestamp === "string") {
+            timestamp = new Date(timestamp); // Parse string into a Date object
+          } else if (timestamp.toDate) {
+            timestamp = timestamp.toDate(); // If it's a Firestore Timestamp, convert to Date
+          } else {
+            // Handle case where the timestamp is not in expected format
+            console.warn(`Unexpected timestamp format: ${timestamp}`);
+            timestamp = new Date(); // Default to the current date if it's invalid
+          }
+        } else {
+          // If no timestamp, set it to the current date
+          timestamp = new Date();
+        }
+
+        return {
+          id: doc.id,
+          ...data,
+          timestamp,
+        } as Location1;
+      });
+
+      setLocations(locationsData);
+      setLoading(false);
+    });
+
+    // Cleanup
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) return <p className="text-center text-xl font-semibold">Loading data...</p>;
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto space-y-8">
+      <h1 className="text-3xl font-bold text-gray-800 text-center mb-8">Live Location Updates</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {locations.map((loc) => (
+          <div
+            key={loc.id}
+            className="bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 rounded-lg shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+          >
+            <div className="text-center mb-4">
+              <div className="text-2xl font-semibold text-white">{`Location ID: ${loc.id}`}</div>
+            </div>
+
+            <div className="space-y-2 text-white">
+              <p><strong>Latitude:</strong> {loc.latitude}</p>
+              <p><strong>Longitude:</strong> {loc.longitude}</p>
+              <p><strong>Moisture:</strong> {loc.moisture}%</p>
+              <p><strong>Nitrogen:</strong> {loc.nitrogen} ppm</p>
+              <p><strong>Potassium:</strong> {loc.potassium} ppm</p>
+              <p><strong>Phosphorus:</strong> {loc.phosphorus} ppm</p>
+              <p><strong>pH Level:</strong> {loc.phLevel}</p>
+              <p><strong>Timestamp:</strong> {new Date(loc.timestamp).toLocaleString()}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+

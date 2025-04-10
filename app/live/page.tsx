@@ -13,7 +13,7 @@ type Location = {
   potassium: number;
   phosphorus: number;
   phLevel: number;
-  timestamp: any; // Will handle both string and Timestamp
+  timestamp: any; 
 };
 
 export default function LiveTrackingText() {

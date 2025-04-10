@@ -8,7 +8,7 @@ interface ModalProps {
   children: React.ReactNode; // Accept any form or content inside
 }
 
-const ReusableModal: React.FC<ModalProps> = ({ isOpen, onClose, title, description, children }) => {
+const UIModal: React.FC<ModalProps> = ({ isOpen, onClose, title, description, children }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
@@ -18,11 +18,11 @@ const ReusableModal: React.FC<ModalProps> = ({ isOpen, onClose, title, descripti
         </DialogHeader>
         {children} {/* Accepts any form */}
         <DialogClose asChild>
-          <button className="mt-4 px-4 py-2 bg-red-500 text-white rounded">Close</button>
+          <button className="mt-4 px-4 py-2 bg-red-500 text-white rounded">Cancel</button>
         </DialogClose>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default ReusableModal;
+export default UIModal;

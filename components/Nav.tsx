@@ -83,11 +83,11 @@ const Navigation = ({role = "main", user = {name: "Asheanfi"} }: LayoutProps) =>
             </Sheet>
           </div>
           <div className="flex items-center flex-col group gap-4 relative ">
-            <Avatar className="">
+            {/* <Avatar className="">
               <AvatarImage src={user?.image || "/default-avatar.png"} alt="User Avatar" />
               <AvatarFallback className="">{user?.name?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
-            <span className="absolute left-0 text-sm font-medium group-hover:visible invisible">{user?.name || "Guest"}</span>
+            <span className="absolute left-0 text-sm font-medium group-hover:visible invisible">{user?.name || "Guest"}</span> */}
           </div>
         </div>
       </div>
