@@ -1,35 +1,42 @@
 'use client'
 import { useState } from "react";
-import axios from "axios";
-import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { signupUser } from "@/utils/signupUser";
 import { Select, SelectItem, SelectTrigger, SelectContent, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "@/app/firebase/config"; 
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { uploadToCloudinary } from "@/utils/uploadToCloudinary";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, LogIn } from "lucide-react";
+import { auth, db } from "@/app/firebase/config";
 
 type FormData = {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
-  role: string;
+  role: "admin" | "farmer" | "advisor" | "technician" ;
   photo: File | null;
 };
 
-export default function SignUp() {
+
+export default function SignUpPage() {
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
-    role: "",
+    role: "farmer",
     photo: null
   });
-
-  const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,81 +48,94 @@ export default function SignUp() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage("");
 
     try {
-      const reader = new FileReader();
-      reader.readAsDataURL(formData.photo as File);
-      reader.onload = async () => {
-        const base64Image = reader.result?.toString().split(",")[1];
+      let photoURL = "";
+      if (formData.photo) {
+        photoURL = await uploadToCloudinary(formData.photo);
+      }
 
-        // Add document to Firestore in the "users" collection
-        console.log({
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            role: formData.role,
-            photo: base64Image,
-            createdAt: new Date(),
-          });
-          
-        const userDocRef = await addDoc(collection(db, "users"), {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          role: formData.role,
-          photo: base64Image,
-          createdAt: new Date(),
-        });
-        
-
-        setMessage("User registered successfully!");
-      };
-    } catch (error: any) {
-      setMessage(error.response?.data?.error || "Failed to register.");
+      await signupUser({ email: formData.email, password: formData.password, firstName: formData.firstName, lastName: formData.lastName, role: formData.role, photoURL });
+      router.push(`/${formData.role}`);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to sign up. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <Card className="w-full max-w-md shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 to-gray-100 p-4">
+      <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-center">Create an Account</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Sign Up</CardTitle>
+          <CardDescription className="text-center">
+            Create an account for Smart Soil Monitoring
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Form fields here */}
-            <div>
-              <Label>First Name</Label>
-              <Input type="text" name="firstName" placeholder="John" required onChange={handleChange} />
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="Enter your first name"
+                required
+              />
             </div>
-            <div>
-              <Label>Last Name</Label>
-              <Input type="text" name="lastName" placeholder="Doe" required onChange={handleChange} />
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Enter your last name"
+                required
+              />
             </div>
-            <div>
-              <Label>Email</Label>
-              <Input type="email" name="email" placeholder="johndoe@example.com" required onChange={handleChange} />
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
+                required
+              />
             </div>
-            <div>
-              <Label>Password</Label>
-              <Input type="password" name="password" placeholder="••••••" required onChange={handleChange} />
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                required
+              />
             </div>
-            <div>
-              <Label>Role</Label>
-              <Select onValueChange={(value) => setFormData({ ...formData, role: value })}>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select onValueChange={(value) => setFormData({ ...formData, role: value as "farmer" | "advisor" | "technician" })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
+                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
+                   <SelectItem value="farmer">Farmer</SelectItem>
+                   <SelectItem value="advisor" >Advisor</SelectItem>
+                   <SelectItem value="technician">Technician</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -123,12 +143,30 @@ export default function SignUp() {
               <Label>Profile Photo</Label>
               <Input type="file" accept="image/*" onChange={handleFileChange} />
             </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing Up..." : "Sign Up"}
+              {loading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <LogIn className="mr-2 h-4 w-4" />
+              )}
+              {loading ? "Signing up..." : "Sign Up"}
             </Button>
-            {message && <p className="text-center text-sm text-green-600">{message}</p>}
           </form>
         </CardContent>
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-gray-600">
+            Already have an account?{" "}
+            <a href="/login" className="text-blue-600 hover:underline">
+              Log in
+            </a>
+          </p>
+        </CardFooter>
       </Card>
     </div>
   );

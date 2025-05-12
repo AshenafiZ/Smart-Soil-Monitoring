@@ -13,9 +13,6 @@ const MapPage: React.FC = () => {
     L.marker([9.145, 40.4897]).addTo(map)
       .bindPopup("Ethiopia")
       .openPopup();
-
-    
-
     return () => {
       map.remove();
     };

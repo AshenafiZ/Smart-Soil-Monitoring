@@ -5,7 +5,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   description?: string;
-  children: React.ReactNode; // Accept any form or content inside
+  children: React.ReactNode; 
 }
 
 const UIModal: React.FC<ModalProps> = ({ isOpen, onClose, title, description, children }) => {

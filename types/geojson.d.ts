@@ -14,7 +14,7 @@ export interface GeoJSONFeature {
     };
     geometry: {
       type: string;
-      coordinates: number[][][]; // MultiPolygon type will have nested arrays
+      coordinates: number[][][]; 
     };
   }
   
