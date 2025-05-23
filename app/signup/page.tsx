@@ -1,8 +1,8 @@
 'use client'
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+// import { createUserWithEmailAndPassword } from "firebase/auth";
+// import { doc, setDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { uploadToCloudinary } from "@/utils/uploadToCloudinary";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, LogIn } from "lucide-react";
-import { auth, db } from "@/app/firebase/config";
+// import { auth, db } from "@/app/firebase/config";
 
 type FormData = {
   firstName: string;
@@ -33,7 +33,7 @@ export default function SignUpPage() {
     role: "farmer",
     photo: null
   });
-  const [message, setMessage] = useState<string>("");
+  // const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();

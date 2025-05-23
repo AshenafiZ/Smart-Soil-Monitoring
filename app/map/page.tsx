@@ -6,14 +6,14 @@ import { useEffect, useState, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
-import L, { LatLngBoundsExpression, LatLngTuple, Icon } from 'leaflet';
+import L, { LatLngTuple, Icon } from 'leaflet';
 import { useMap } from "react-leaflet";
 
 const MapContainer = dynamic(() => import("react-leaflet").then(mod => mod.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import("react-leaflet").then(mod => mod.TileLayer), { ssr: false });
 const GeoJSON = dynamic(() => import("react-leaflet").then(mod => mod.GeoJSON), { ssr: false });
 const Marker = dynamic(() => import("react-leaflet").then(mod => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import("react-leaflet").then(mod => mod.Popup), { ssr: false });
+// const Popup = dynamic(() => import("react-leaflet").then(mod => mod.Popup), { ssr: false });
 const Tooltip = dynamic(() => import("react-leaflet").then(mod => mod.Tooltip), { ssr: false });
 
 interface FeatureProperties {
@@ -81,11 +81,11 @@ const EthiopiaMap = () => {
   const [lng, setLng] = useState<number | null>(null);
   const [zoom, setZoom] = useState<number | null>(null);
   const [triggerFly, setTriggerFly] = useState(false);
-  const [locationNames, setLocationNames] = useState<string[]>([]);
+  // const [locationNames, setLocationNames] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
+  // const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
   type AdminLevel = (typeof levels)[number];
 
   const propertyKeys: { [key in AdminLevel]: string } = {
@@ -119,11 +119,11 @@ const EthiopiaMap = () => {
     iconAnchor: [12, 41],
   });
   
-  const defaultIcon = new L.Icon({
-    iconUrl: '/icons/default.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-  });
+  // const defaultIcon = new L.Icon({
+  //   iconUrl: '/icons/default.png',
+  //   iconSize: [25, 41],
+  //   iconAnchor: [12, 41],
+  // });
   
   const healthySoilIcon = new L.Icon({
     iconUrl: '/icons/healthy-soil.png', 
@@ -158,7 +158,7 @@ const EthiopiaMap = () => {
           "Unknown"
         );
         
-        setLocationNames((prev) => [...prev, ...names]);
+        // setLocationNames((prev) => [...prev, ...names]);
       } catch (error) {
         console.error(`Failed to load ${level} data`, error);
       }

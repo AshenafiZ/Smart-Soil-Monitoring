@@ -12,7 +12,7 @@ type User = {
   role: string;
   photo?: string;
   photoURL?: string;
-  createdAt: any; 
+  createdAt: Date; 
 };
 
 export default function UsersList() {

@@ -7,7 +7,7 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import L, { LatLngTuple, Icon } from "leaflet";
 import { useMap } from "react-leaflet";
 import { FaSearch,  } from "react-icons/fa";
-import { Search, Clock, MapPin } from "lucide-react";
+import { Clock, MapPin } from "lucide-react";
 import { listenToSoilPoints, SoilPoint } from "@/lib/soilData";
 
 const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), { ssr: false });
@@ -22,7 +22,7 @@ interface FeatureProperties {
   WOREDANAME?: string;
   RK_NAME?: string;
   level?: string;
-  [key: string]: any;
+  [key: string]: string | undefined;
 }
 interface GeoJsonFeature {
   type: "Feature";
@@ -30,26 +30,26 @@ interface GeoJsonFeature {
   geometry: {
     type: string;
     coordinates: any;
-  };
+   };
 }
 interface GeoJsonData {
   type: "FeatureCollection";
   features: GeoJsonFeature[];
 }
-type Location = {
-  name: string;
-  coords: LatLngTuple;
-  type: string;
-  moisture?: number;
-  pH?: number;
-  nitrogen?: number;
-  phosphorus?: number;
-  potassium?: number;
-  time?: string;
-};
-interface EthiopiaMapProps {
-  role: string; 
-}
+// type Location = {
+//   name: string;
+//   coords: LatLngTuple;
+//   type: string;
+//   moisture?: number;
+//   pH?: number;
+//   nitrogen?: number;
+//   phosphorus?: number;
+//   potassium?: number;
+//   time?: string;
+// };
+// interface EthiopiaMapProps {
+//   role: string; 
+// }
 const FlyToLocation = ({ lat, lng, zoom, triggerFly }: { lat: number | null; lng: number | null; zoom: number | null; triggerFly: boolean }) => {
   const map = useMap();
   useEffect(() => {
@@ -96,31 +96,31 @@ const EthiopiaMap = () => {
     iconAnchor: [12, 41],
   });
 
-  const hospitalIcon = new L.Icon({
-    iconUrl: '/icons/hospital.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-  }); 
-  const schoolIcon = new L.Icon({
-    iconUrl: '/icons/school.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-  });
-  const defaultIcon = new L.Icon({
-    iconUrl: '/icons/default.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-  }); 
-  const erodedSoilIcon = new L.Icon({
-    iconUrl: '/icons/eroded-soil.png',  
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-  });
-  const farmingIcon = new L.Icon({
-    iconUrl: '/icons/farming.png',  
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-  });
+  // const hospitalIcon = new L.Icon({
+  //   iconUrl: '/icons/hospital.png',
+  //   iconSize: [25, 41],
+  //   iconAnchor: [12, 41],
+  // }); 
+  // const schoolIcon = new L.Icon({
+  //   iconUrl: '/icons/school.png',
+  //   iconSize: [25, 41],
+  //   iconAnchor: [12, 41],
+  // });
+  // const defaultIcon = new L.Icon({
+  //   iconUrl: '/icons/default.png',
+  //   iconSize: [25, 41],
+  //   iconAnchor: [12, 41],
+  // }); 
+  // const erodedSoilIcon = new L.Icon({
+  //   iconUrl: '/icons/eroded-soil.png',  
+  //   iconSize: [25, 41],
+  //   iconAnchor: [12, 41],
+  // });
+  // const farmingIcon = new L.Icon({
+  //   iconUrl: '/icons/farming.png',  
+  //   iconSize: [25, 41],
+  //   iconAnchor: [12, 41],
+  // });
   useEffect(() => {
     const stopListening = listenToSoilPoints(setSoilPoints);
     return () => stopListening();

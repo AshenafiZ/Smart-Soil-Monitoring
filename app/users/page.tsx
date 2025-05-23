@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/app/firebase/config";
 import FullPageLoader from "@/components/Loader";
+import Image from "next/image";
 
 type User = {
   id: string;
@@ -76,10 +77,22 @@ export default function UsersList() {
             <tr key={user.id} className="text-center">
               <td className="border border-gray-300 p-2">
                 {user.photo ? (
-                  <img src={`data:image/png;base64,${user.photo}`} alt="Profile" className="w-12 h-12 rounded-full mx-auto" />
-                ) : (
-                  <img src={`${user.photoURL}`} className="w-12 h-12 rounded-full mx-auto" />
-                )}
+                <Image
+                  src={`data:image/png;base64,${user.photo}`}
+                  alt="Profile"
+                  width={48}
+                  height={48}
+                  className="rounded-full mx-auto"
+                />
+              ) : (
+                <Image
+                  src={user.photoURL || '/default-profile.png'} 
+                  alt="Profile"
+                  width={48}
+                  height={48}
+                  className="rounded-full mx-auto"
+                />
+              )}
               </td>
               <td className="border border-gray-300 p-2">
                 {user.firstName} {user.lastName}
