@@ -28,6 +28,10 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // Set auth token in a secure cookie for middleware
+      const token = await user.getIdToken();
+      document.cookie = `authToken=${token}; path=/; Secure; SameSite=Strict`;
+
       // Fetch user role from Firestore
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
@@ -35,12 +39,20 @@ export default function LoginPage() {
         const role = userData.role || "main";
 
         // Redirect to role-based route
-        router.push(`/${role}`);
+        const redirectPath = role === "main" ? "/" : `/${role}`;
+        router.push(redirectPath);
       } else {
         setError("User role not found. Please contact support.");
       }
     } catch (err: any) {
-      setError(err.message || "Failed to log in. Please check your credentials.");
+      // Map Firebase error codes to user-friendly messages
+      const errorMessages: Record<string, string> = {
+        "auth/invalid-email": "Invalid email format.",
+        "auth/user-not-found": "No user found with this email.",
+        "auth/wrong-password": "Incorrect password.",
+        "auth/too-many-requests": "Too many attempts. Please try again later.",
+      };
+      setError(errorMessages[err.code] || "Failed to log in. Please check your credentials.");
     } finally {
       setLoading(false);
     }
@@ -66,6 +78,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
+                disabled={loading}
               />
             </div>
             <div className="space-y-2">
@@ -77,6 +90,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
+                disabled={loading}
               />
             </div>
             {error && (
@@ -97,7 +111,7 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600">
-            Do not have an account?{" "}
+            Don't have an account?{" "}
             <a href="/signup" className="text-blue-600 hover:underline">
               Sign up
             </a>

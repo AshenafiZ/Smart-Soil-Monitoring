@@ -38,7 +38,7 @@ const DataForm: React.FC<DataFormProps> = ({ onClose }) => {
       });
 
       alert("Data added successfully!");
-      onClose(); // Close the modal after submitting
+      onClose(); 
     } catch (error) {
       console.error("Error adding document: ", error);
     }

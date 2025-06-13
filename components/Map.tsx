@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
-import L, { LatLngTuple, Icon } from "leaflet";
+import L, { Icon } from "leaflet";
 import { useMap } from "react-leaflet";
 import { FaSearch,  } from "react-icons/fa";
 import { Clock, MapPin } from "lucide-react";

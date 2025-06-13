@@ -21,7 +21,7 @@ export default function LiveTrackingText() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "live"), (querySnapshot) => {
+    const unsubscribe = onSnapshot(collection(db, "liveData"), (querySnapshot) => {
       const locationsData = querySnapshot.docs.map((doc) => {
         const data = doc.data();
         let timestamp = data.timestamp;
