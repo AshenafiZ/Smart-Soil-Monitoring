@@ -1,6 +1,6 @@
 "use client";
 import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "@/app/firebase/config";
+import { db } from "@/lib/firebase";
 import dynamic from "next/dynamic";
 import { useEffect, useState, useRef } from "react";
 import "leaflet/dist/leaflet.css";

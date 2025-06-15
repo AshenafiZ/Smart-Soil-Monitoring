@@ -102,7 +102,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { collection, onSnapshot, addDoc, deleteDoc, doc } from "firebase/firestore";
-import { db } from "@/app/firebase/config";
+import { db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

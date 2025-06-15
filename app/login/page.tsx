@@ -1,21 +1,25 @@
 'use client';
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, LogIn } from "lucide-react";
-import { auth, db } from "@/app/firebase/config";
+import { Loader2, LogIn, Mail } from "lucide-react";
+import { auth, db } from "@/lib/firebase";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetMessage, setResetMessage] = useState("");
+  const [resetError, setResetError] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -58,6 +62,28 @@ export default function LoginPage() {
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetMessage("");
+    setResetError("");
+    setResetLoading(true);
+
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setResetMessage("Password reset email sent! Check your inbox.");
+      setResetEmail("");
+    } catch (err: any) {
+      const errorMessages: Record<string, string> = {
+        "auth/invalid-email": "Invalid email format.",
+        "auth/user-not-found": "No user found with this email.",
+        "auth/too-many-requests": "Too many attempts. Please try again later.",
+      };
+      setResetError(errorMessages[err.code] || "Failed to send password reset email.");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 to-gray-100 p-4">
       <Card className="w-full max-w-md">
@@ -92,6 +118,16 @@ export default function LoginPage() {
                 required
                 disabled={loading}
               />
+              <div className="text-right">
+                <button
+                  type="button"
+                  className="text-sm text-blue-600 hover:underline"
+                  onClick={() => setResetEmail(email)}
+                  disabled={loading}
+                >
+                  Forgot Password?
+                </button>
+              </div>
             </div>
             {error && (
               <Alert variant="destructive">
@@ -108,6 +144,44 @@ export default function LoginPage() {
               {loading ? "Logging in..." : "Log In"}
             </Button>
           </form>
+
+          {/* Password Reset Form */}
+          {(resetEmail || resetMessage || resetError) && (
+            <form onSubmit={handlePasswordReset} className="mt-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">Reset Password</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                  disabled={resetLoading}
+                />
+              </div>
+              {resetMessage && (
+                <Alert variant="default">
+                  <AlertTitle>Success</AlertTitle>
+                  <AlertDescription>{resetMessage}</AlertDescription>
+                </Alert>
+              )}
+              {resetError && (
+                <Alert variant="destructive">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{resetError}</AlertDescription>
+                </Alert>
+              )}
+              <Button type="submit" className="w-full" variant="outline" disabled={resetLoading}>
+                {resetLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Mail className="mr-2 h-4 w-4" />
+                )}
+                {resetLoading ? "Sending..." : "Send Reset Email"}
+              </Button>
+            </form>
+          )}
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600">

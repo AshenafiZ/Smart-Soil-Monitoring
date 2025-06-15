@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "@/app/firebase/config";
+import { db } from "@/lib/firebase";
 
 type Location = {
   id: string;

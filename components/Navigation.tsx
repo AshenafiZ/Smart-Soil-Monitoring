@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LogIn, LogOut, Menu } from "lucide-react";
-import { auth } from "@/app/firebase/config";
+import { auth } from "@/lib/firebase";
 
 type Role = "main" | "admin" | "farmer" | "advisor" | "technician";
 type NavItem = { name: string; path: string; label: string };

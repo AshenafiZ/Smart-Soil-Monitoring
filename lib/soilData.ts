@@ -1,4 +1,4 @@
-import { db } from "@/app/firebase/config";
+import { db } from "@/lib/firebase";
 import {collection, doc, onSnapshot, getDoc, DocumentData, QuerySnapshot,} from "firebase/firestore";
 
 export type Coordinates = [number, number];

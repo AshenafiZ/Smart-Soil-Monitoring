@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { auth, db, storage, createUserWithEmailAndPassword, setDoc, doc, ref, uploadBytes, getDownloadURL, updateProfile } from "../firebase/config";
+import { auth, db, storage, createUserWithEmailAndPassword, setDoc, doc, ref, uploadBytes, getDownloadURL, updateProfile } from "../../lib/firebase";
 
 type RequestBody = {
   firstName: string;

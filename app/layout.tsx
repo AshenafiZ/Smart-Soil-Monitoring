@@ -6,8 +6,10 @@ import { usePathname } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import Navigation from "@/components/Navigation";
-import { auth, db } from "./firebase/config";
+import { auth, db } from "../lib/firebase";
 import "./globals.css";
+import SensorMonitor from "@/components/SensorMonitor";
+import Notifications from "@/components/Notification";
 
 const navigationRoutes = [
   /^\/$/, // Home
@@ -63,12 +65,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       if (firebaseUser) {
         const token = await firebaseUser.getIdToken(true);
         document.cookie = `authToken=${token}; path=/; Secure; SameSite=Strict`;
-        // ... rest of logic ...
       }
     });
     return () => unsubscribe();
   }, []);
-  // Check if the current route matches any navigation route
   const shouldShowNavigation = navigationRoutes.some((pattern) => pattern.test(pathname));
 
   return (
@@ -81,6 +81,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             isLoading={isLoading}
           />
         )}
+        <SensorMonitor />
+        <Notifications />
         <main className="container mx-auto px-4 py-8">{children}</main>
       </body>
     </html>
