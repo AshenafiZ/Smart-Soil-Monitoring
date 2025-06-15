@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { onSnapshot, collection, query, where, orderBy } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
+import { Timestamp } from 'firebase/firestore';
 
 interface Notification {
   id: string;
   title: string;
   body: string;
-  timestamp: any;
+  timestamp: Timestamp | null; 
   read: boolean;
 }
 
@@ -66,7 +67,11 @@ const Notifications: React.FC = () => {
             {notifications.map((notification) => (
               <li key={notification.id} style={{ color: notification.read ? 'gray' : 'black' }}>
                 <strong>{notification.title}</strong>: {notification.body} <br />
-                <small>{notification.timestamp?.toDate().toLocaleString()}</small>
+                  <small>
+                    {notification.timestamp && notification.timestamp.toDate
+                      ? notification.timestamp.toDate().toLocaleString()
+                      : 'No timestamp available'}
+                  </small>              
               </li>
             ))}
           </ul>

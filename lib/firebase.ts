@@ -1,8 +1,8 @@
-import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, updateProfile, setPersistence, browserSessionPersistence, sendPasswordResetEmail } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, updateProfile, setPersistence, browserSessionPersistence, sendPasswordResetEmail } from 'firebase/auth';
+import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, query, orderBy } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -15,61 +15,71 @@ const firebaseConfig = {
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firebase services
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 let messaging: Messaging | null = null;
 
-// Initialize Firebase Messaging (browser-only)
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   try {
     messaging = getMessaging(app);
+    console.log('Firebase Messaging initialized successfully');
   } catch (error) {
-    console.error("Firebase Messaging not supported:", error);
+    console.error('Firebase Messaging initialization failed:', error);
   }
 }
 
-// Set session persistence for auth
 setPersistence(auth, browserSessionPersistence).catch((error) => {
-  console.error("Failed to set auth persistence:", error);
+  console.error('Failed to set auth persistence:', error);
 });
 
-// Notification permission and token retrieval
 const requestNotificationPermission = async (): Promise<string | null> => {
   if (!messaging) {
-    console.warn("Messaging not available");
+    console.warn('Messaging not available');
+    return null;
+  }
+
+  if (!process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY) {
+    console.error('VAPID key is not defined');
     return null;
   }
 
   try {
     const permission = await Notification.requestPermission();
-    if (permission === "granted") {
-      const token = await getToken(messaging, {
-        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
-      });
-      return token;
+    console.log('Notification permission:', permission);
+    if (permission === 'granted') {
+      try {
+        const token = await getToken(messaging, {
+          vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+        });
+        console.log('FCM Token:', token);
+        return token;
+      } catch (tokenError) {
+        console.error('Error getting FCM token:', tokenError);
+        return null;
+      }
     } else {
-      console.warn("Notification permission denied");
+      console.warn('Notification permission denied');
       return null;
     }
   } catch (error) {
-    console.error("Error requesting notification permission:", error);
+    console.error('Error requesting notification permission:', error);
     return null;
   }
 };
 
-// Listen for foreground messages
 const onMessageListener = () =>
   new Promise((resolve) => {
     if (messaging) {
       onMessage(messaging, (payload) => {
+        console.log('Foreground notification received:', payload);
         resolve(payload);
       });
+    } else {
+      console.warn('Messaging not available for onMessageListener');
     }
   });
 
-// Export services and utilities
 export {
   app,
   auth,
@@ -87,6 +97,10 @@ export {
   sendPasswordResetEmail,
   requestNotificationPermission,
   onMessageListener,
+  onSnapshot,
+  collection,
+  query,
+  orderBy,
 };
 
 export default app;

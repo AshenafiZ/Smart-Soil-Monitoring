@@ -6,7 +6,7 @@ import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import L, { Icon } from "leaflet";
 import { useMap } from "react-leaflet";
-import { FaSearch,  } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import { Clock, MapPin } from "lucide-react";
 import { listenToSoilPoints, SoilPoint } from "@/lib/soilData";
 
@@ -30,33 +30,20 @@ interface GeoJsonFeature {
   geometry: {
     type: string;
     coordinates: any;
-   };
+  };
 }
 interface GeoJsonData {
   type: "FeatureCollection";
   features: GeoJsonFeature[];
 }
-// type Location = {
-//   name: string;
-//   coords: LatLngTuple;
-//   type: string;
-//   moisture?: number;
-//   pH?: number;
-//   nitrogen?: number;
-//   phosphorus?: number;
-//   potassium?: number;
-//   time?: string;
-// };
-// interface EthiopiaMapProps {
-//   role: string; 
-// }
-const FlyToLocation = ({ lat, lng, zoom, triggerFly }: { lat: number | null; lng: number | null; zoom: number | null; triggerFly: boolean }) => {
+
+const FlyToLocation = ({ lat, lng, bounds, triggerFly }: { lat: number | null; lng: number | null; bounds: L.LatLngBounds | null; triggerFly: boolean }) => {
   const map = useMap();
   useEffect(() => {
-    if (triggerFly && lat !== null && lng !== null && zoom !== null) {
-      map.flyTo([lat, lng], zoom, { animate: true, duration: 2 });
+    if (triggerFly && lat !== null && lng !== null && bounds !== null) {
+      map.fitBounds(bounds, { animate: true, duration: 2, padding: [50, 50] });
     }
-  }, [triggerFly, lat, lng, zoom, map]);
+  }, [triggerFly, lat, lng, bounds, map]);
 
   return lat !== null && lng !== null ? <Marker position={[lat, lng]} /> : null;
 };
@@ -82,13 +69,14 @@ const EthiopiaMap = () => {
   const [soilPoints, setSoilPoints] = useState<SoilPoint[]>([]);
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
-  const [zoom, setZoom] = useState<number | null>(null);
+  const [bounds, setBounds] = useState<L.LatLngBounds | null>(null);
   const [triggerFly, setTriggerFly] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<GeoJsonFeature[]>([]);
   const [recent, setRecent] = useState<GeoJsonFeature[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedBoundary, setSelectedBoundary] = useState<GeoJsonData | null>(null);
+  const [boundaryKey, setBoundaryKey] = useState(0);
 
   const healthySoilIcon = new L.Icon({
     iconUrl: "/icons/healthy-soil.png",
@@ -96,31 +84,6 @@ const EthiopiaMap = () => {
     iconAnchor: [12, 41],
   });
 
-  // const hospitalIcon = new L.Icon({
-  //   iconUrl: '/icons/hospital.png',
-  //   iconSize: [25, 41],
-  //   iconAnchor: [12, 41],
-  // }); 
-  // const schoolIcon = new L.Icon({
-  //   iconUrl: '/icons/school.png',
-  //   iconSize: [25, 41],
-  //   iconAnchor: [12, 41],
-  // });
-  // const defaultIcon = new L.Icon({
-  //   iconUrl: '/icons/default.png',
-  //   iconSize: [25, 41],
-  //   iconAnchor: [12, 41],
-  // }); 
-  // const erodedSoilIcon = new L.Icon({
-  //   iconUrl: '/icons/eroded-soil.png',  
-  //   iconSize: [25, 41],
-  //   iconAnchor: [12, 41],
-  // });
-  // const farmingIcon = new L.Icon({
-  //   iconUrl: '/icons/farming.png',  
-  //   iconSize: [25, 41],
-  //   iconAnchor: [12, 41],
-  // });
   useEffect(() => {
     const stopListening = listenToSoilPoints(setSoilPoints);
     return () => stopListening();
@@ -167,14 +130,14 @@ const EthiopiaMap = () => {
               return { ...feature, properties: { ...feature.properties, level } };
             }
           }
-          return feature; 
+          return feature;
         });
         setRecent(sanitized);
       } catch (error) {
         console.error("Failed to parse recent searches", error);
       }
     }
-  }, [geoJsonData]); 
+  }, [geoJsonData]);
 
   const getFeatureName = (feature: GeoJsonFeature): string => {
     let level = feature.properties.level as AdminLevel | undefined;
@@ -183,7 +146,7 @@ const EthiopiaMap = () => {
         const key = propertyKeys[l];
         if (feature.properties[key]) {
           level = l;
-          feature.properties.level = l; 
+          feature.properties.level = l;
           break;
         }
       }
@@ -215,14 +178,6 @@ const EthiopiaMap = () => {
     return totalPoints > 0 ? [sumLat / totalPoints, sumLng / totalPoints] : null;
   };
 
-  const getZoomLevel = (bounds: L.LatLngBounds) => {
-    const area = bounds.getSouthWest().distanceTo(bounds.getNorthEast());
-    if (area > 2000000) return 6;
-    else if (area > 100000) return 8;
-    else if (area > 5000) return 10;
-    else return 12;
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
@@ -237,7 +192,7 @@ const EthiopiaMap = () => {
       );
       filtered.push(...matches);
     }
-    setResults(filtered.slice(0, 10)); 
+    setResults(filtered.slice(0, 10));
   };
 
   const handleSearch = (customQuery?: string) => {
@@ -262,16 +217,18 @@ const EthiopiaMap = () => {
       }
     }
 
-    setResults(allFiltered.slice(0, 10)); 
+    setResults(allFiltered.slice(0, 10));
 
     if (exactMatch || allFiltered.length > 0) {
       const featureToShow = exactMatch || allFiltered[0];
       const newBoundary: GeoJsonData = { type: "FeatureCollection", features: [featureToShow] };
       setSelectedBoundary(newBoundary);
+      setBoundaryKey((prev) => prev + 1);
       const center = getCenterOfPolygon(featureToShow.geometry);
+      const featureBounds = L.geoJSON(featureToShow).getBounds();
       setLat(center?.[0] ?? null);
       setLng(center?.[1] ?? null);
-      setZoom(getZoomLevel(L.geoJSON(featureToShow).getBounds()));
+      setBounds(featureBounds);
       setTriggerFly(true);
       setTimeout(() => setTriggerFly(false), 500);
       addToRecent(featureToShow);
@@ -311,24 +268,43 @@ const EthiopiaMap = () => {
     <div className="relative w-full h-screen">
       <MapContainer center={[9, 39]} zoom={6} style={{ height: "500px", width: "100%" }} className="z-10" attributionControl={false}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        {selectedBoundary && <GeoJSON data={selectedBoundary} />}
+        {selectedBoundary && <GeoJSON key={boundaryKey} data={selectedBoundary} />}
         {soilPoints.map((point, index) => (
           <Marker key={index} position={point.coordinates} icon={getSoilIcon("Healthy Soil")}>
             <Tooltip direction="top" offset={[0, -10]} opacity={1}>
-              <div>
-                <h3 className="text-sm font-bold">Ethiopia Soil Nutrient Mapping</h3>
-                <p className="text-xs"><strong>Nitrogen</strong>: {point.nitrogen}</p>
-                <p className="text-xs"><strong>Phosphorus</strong>: {point.phosphorus}</p>
-                <p className="text-xs"><strong>Potassium</strong>: {point.potassium}</p>
-                <p className="text-xs"><strong>Soil Moisture</strong>: {point.moisture}</p>
-                <p className="text-xs"><strong>pH value</strong>: {point.ph}</p>
-                {/* <p className="text-xs"><strong>Last Updated</strong>: {point.lastUpdated}</p> */}
-                <p className="text-xs"><strong>Coordinates</strong>: {point.coordinates[0]}, {point.coordinates[1]}</p>
+              <div className="bg-white bg-opacity-90 backdrop-blur-md rounded-lg shadow-lg p-4 max-w-xs border border-green-200">
+                <h3 className="text-lg font-semibold text-green-800 mb-2">Ethiopia Soil Nutrient Mapping</h3>
+                <div className="space-y-1 text-sm">
+                  <p className="text-gray-700">
+                    <span className="font-medium text-green-600">Nitrogen</span>: {point.nitrogen}
+                  </p>
+                  <p className="text-gray-700">
+                    <span className="font-medium text-green-600">Phosphorus</span>: {point.phosphorus}
+                  </p>
+                  <p className="text-gray-700">
+                    <span className="font-medium text-green-600">Potassium</span>: {point.potassium}
+                  </p>
+                  <p className="text-gray-700">
+                    <span className="font-medium text-green-600">Soil Moisture</span>: {point.moisture}
+                  </p>
+                  <p className="text-gray-700">
+                    <span className="font-medium text-green-600">pH Value</span>: {point.ph}
+                  </p>
+                  <p className="text-gray-700">
+                    <span className="font-medium text-green-600">Coordinates</span>: {point.coordinates[0].toFixed(4)}, {point.coordinates[1].toFixed(4)}
+                  </p>
+                  <p className="text-gray-700">
+                    <span className="font-medium text-green-600">Created At</span>: {point.createdAt ? point.createdAt.toLocaleString("en-US", { month: "2-digit", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true }) : "N/A"}
+                  </p>
+                  <p className="text-gray-700">
+                    <span className="font-medium text-green-600">Last Updated</span>: {point.lastUpdated ? point.lastUpdated.toLocaleString("en-US", { month: "2-digit", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true }) : "N/A"}
+                  </p>
+                </div>
               </div>
             </Tooltip>
           </Marker>
         ))}
-        <FlyToLocation lat={lat} lng={lng} zoom={zoom} triggerFly={triggerFly} />
+        <FlyToLocation lat={lat} lng={lng} bounds={bounds} triggerFly={triggerFly} />
       </MapContainer>
 
       <div className="absolute top-4 left-4 z-[100] w-full max-w-md">
@@ -370,7 +346,7 @@ const EthiopiaMap = () => {
                     key={`${getFeatureName(feature)}-${index}`}
                     onMouseDown={() => handleSelect(feature)}
                     className="flex items-center cursor-pointer gap-3 px-2 py-1 hover:bg-gray-100 rounded"
-                  > 
+                  >
                     <Clock className="w-5 h-5 text-gray-400 bg-gray-200 rounded-full" />
                     <span>{getFeatureName(feature)} ({feature.properties.level || "Unknown"})</span>
                   </div>
