@@ -4,7 +4,7 @@ import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, query, order
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,

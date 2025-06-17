@@ -110,3 +110,46 @@ export default function HomePage() {
     </div>
   );
 }
+
+
+// app/page.tsx
+// 'use client';
+
+// import { useEffect, useState } from 'react';
+// import axios from 'axios';
+
+// export default function HomePage() {
+//   const [items, setItems] = useState<string[]>([]);
+//   const [newItem, setNewItem] = useState('');
+
+//   // Fetch data on load
+//   useEffect(() => {
+//     axios.get('/api/data').then(res => setItems(res.data.data));
+//   }, []);
+
+//   const handleAddItem = async () => {
+//     if (!newItem.trim()) return;
+//     const res = await axios.post('/api/data', { item: newItem });
+//     setItems(res.data.data);
+//     setNewItem('');
+//   };
+
+//   return (
+//     <main style={{ padding: 20 }}>
+//       <h1>Data List</h1>
+//       <input
+//         type="text"
+//         value={newItem}
+//         onChange={e => setNewItem(e.target.value)}
+//         placeholder="Enter item"
+//       />
+//       <button onClick={handleAddItem}>Add</button>
+
+//       <ul>
+//         {items.map((item, idx) => (
+//           <li key={idx}>{item}</li>
+//         ))}
+//       </ul>
+//     </main>
+//   );
+// }

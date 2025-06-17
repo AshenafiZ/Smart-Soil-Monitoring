@@ -24,10 +24,10 @@ const roles: Record<Role, NavItem[]> = {
   ],
   admin: [
     { name: "dashboard", path: "/admin", label: "Dashboard" },
-    { name: "device_management", path: "/admin/devices", label: "Devices" },
+    // { name: "device_management", path: "/admin/devices", label: "Devices" },
     { name: "user_management", path: "/admin/users", label: "Users" },
     { name: "map", path: "/admin/map", label: "Map" },
-    { name: "logs", path: "/admin/logs", label: "Logs" },
+    { name: "live", path: "/admin/live", label: "Live Data" },
   ],
   farmer: [
     { name: "live_tracker", path: "/farmer/tracker", label: "Live Tracker" },
@@ -36,9 +36,10 @@ const roles: Record<Role, NavItem[]> = {
     { name: "alert", path: "/farmer/alerts", label: "Alerts" },
   ],
   advisor: [
-    { name: "recommendations", path: "/advisor/recommendations", label: "Recommendations" },
-    { name: "reports", path: "/advisor/reports", label: "Reports" },
+    // { name: "recommendations", path: "/advisor/recommendations", label: "Recommendations" },
+    // { name: "reports", path: "/advisor/reports", label: "Reports" },
     { name: "map", path: "/advisor/map", label: "Map" },
+    { name: "live", path: "/admin/live", label: "Live Data" },
   ],
   technician: [
     { name: "add_device", path: "/technician/add-device", label: "Add Device" },

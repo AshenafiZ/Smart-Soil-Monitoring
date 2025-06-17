@@ -2,14 +2,27 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { getMessaging, getToken } from "firebase/messaging";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardTitle, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, LogIn, Mail } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCk1lEqh3LsBVczdW_BRWop2tB1IWBE9Bg",
+  authDomain: "smart-soil-monitoring-24a20.firebaseapp.com",
+  projectId: "smart-soil-monitoring-24a20",
+  storageBucket: "smart-soil-monitoring-24a20.firebasestorage.app",
+  messagingSenderId: "715608769710",
+  appId: "1:715608769710:web:74b6ba46cb40d8e4d9193f",
+};
+
+const app = initializeApp(firebaseConfig);
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -21,6 +34,43 @@ export default function LoginPage() {
   const [resetError, setResetError] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
   const router = useRouter();
+
+  // Register service worker and get FCM token
+  const registerServiceWorker = async () => {
+    if (!('serviceWorker' in navigator && 'PushManager' in window)) {
+      console.warn('Service Worker or PushManager not supported.');
+      return null;
+    }
+
+    try {
+      // Check if service worker file is accessible
+      const response = await fetch('/firebase-messaging-sw.js');
+      if (!response.ok) {
+        throw new Error(`Service worker file not found: ${response.status}`);
+      }
+
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+        scope: '/',
+      });
+      console.log('Service Worker registered:', registration);
+
+      const messaging = getMessaging(app);
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        console.warn('Notification permission denied.');
+        return null;
+      }
+
+      const token = await getToken(messaging, {
+        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+      });
+      console.log('FCM Token:', token);
+      return token;
+    } catch (error) {
+      console.error('Service Worker or FCM token error:', error);
+      return null;
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,20 +86,32 @@ export default function LoginPage() {
       const token = await user.getIdToken();
       document.cookie = `authToken=${token}; path=/; Secure; SameSite=Strict`;
 
+      // Get FCM token and update users collection
+      const deviceToken = await registerServiceWorker();
+      const userRef = doc(db, "users", user.uid);
+      try {
+        const userDoc = await getDoc(userRef);
+        await setDoc(userRef, {
+          deviceToken: deviceToken || '',
+          lastLogin: new Date().toISOString(),
+        }, { merge: true });
+        console.log('User document updated for UID:', user.uid, 'Device Token:', deviceToken);
+      } catch (firestoreError) {
+        console.error('Error updating users collection:', firestoreError);
+        setError('Failed to update user data. Login successful, but notifications may not work.');
+      }
+
       // Fetch user role from Firestore
-      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const userDoc = await getDoc(userRef);
       if (userDoc.exists()) {
         const userData = userDoc.data();
         const role = userData.role || "main";
-
-        // Redirect to role-based route
         const redirectPath = role === "main" ? "/" : `/${role}`;
         router.push(redirectPath);
       } else {
         setError("User role not found. Please contact support.");
       }
     } catch (err: any) {
-      // Map Firebase error codes to user-friendly messages
       const errorMessages: Record<string, string> = {
         "auth/invalid-email": "Invalid email format.",
         "auth/user-not-found": "No user found with this email.",
@@ -145,7 +207,6 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Password Reset Form */}
           {(resetEmail || resetMessage || resetError) && (
             <form onSubmit={handlePasswordReset} className="mt-4 space-y-4">
               <div className="space-y-2">

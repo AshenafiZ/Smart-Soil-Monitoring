@@ -10,6 +10,7 @@ import { auth, db } from '../lib/firebase';
 import './globals.css';
 import SensorMonitor from '@/components/SensorMonitor';
 import Notifications from '@/components/Notifications';
+import FullPageLoader from '@/components/Loader';
 
 const navigationRoutes = [
   /^\/$/, // Home
@@ -17,10 +18,14 @@ const navigationRoutes = [
   /^\/contact$/, // Contact
   /^\/signup$/, // Sign Up
   /^\/login$/, // Login
-  /^\/admin\/.*/, // Admin routes
-  /^\/farmer\/.*/, // Farmer routes
-  /^\/advisor\/.*/, // Advisor routes
-  /^\/technician\/.*/, // Technician routes
+  /^\/admin$/, // Admin base route
+  /^\/admin\/.*/, // Admin subroutes
+  /^\/farmer$/, // Farmer base route
+  /^\/farmer\/.*/, // Farmer subroutes
+  /^\/advisor$/, // Advisor base route
+  /^\/advisor\/.*/, // Advisor subroutes
+  /^\/technician$/, // Technician base route
+  /^\/technician\/.*/, // Technician subroutes
 ];
 
 type User = {
@@ -40,7 +45,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
-          // Fetch user data from Firestore
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           if (userDoc.exists()) {
             const userData = userDoc.data();
@@ -54,8 +58,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             setIsAuthenticated(false);
             setUser(null);
           }
-
-          // Set auth token cookie
           const token = await firebaseUser.getIdToken();
           document.cookie = `authToken=${token}; path=/; Secure; SameSite=Strict`;
         } else {
@@ -81,7 +83,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     return (
       <html lang="en">
         <body className="min-h-screen bg-gray-100">
-          <div>Loading...</div>
+          <FullPageLoader />
         </body>
       </html>
     );
@@ -107,8 +109,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             isLoading={isLoading}
           />
         )}
-        <SensorMonitor />
-        <Notifications />
+        {/* <SensorMonitor /> */}
+        {/* <Notifications /> */}
         <main className="container mx-auto px-4 py-8">{children}</main>
       </body>
     </html>
