@@ -8,8 +8,6 @@ import { doc, getDoc } from 'firebase/firestore';
 import Navigation from '@/components/Navigation';
 import { auth, db } from '../lib/firebase';
 import './globals.css';
-import SensorMonitor from '@/components/SensorMonitor';
-import Notifications from '@/components/Notifications';
 import FullPageLoader from '@/components/Loader';
 
 const navigationRoutes = [
@@ -66,9 +64,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           document.cookie = `authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
         }
         setError(null);
-      } catch (error: any) {
-        console.error('Authentication error:', error);
-        setError('Failed to authenticate. Please check your connection and try again.');
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to authenticate. Please check your connection and try again.';
+        console.error('Authentication error:', errorMessage);
+        setError(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -109,8 +108,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             isLoading={isLoading}
           />
         )}
-        {/* <SensorMonitor /> */}
-        {/* <Notifications /> */}
         <main className="container mx-auto px-4 py-8">{children}</main>
       </body>
     </html>

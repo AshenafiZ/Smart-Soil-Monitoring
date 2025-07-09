@@ -102,7 +102,7 @@ const EthiopiaMap = () => {
           })),
         };
         setGeoJsonData((prev) => ({ ...prev, [level]: taggedData }));
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`Failed to load ${level} data`, error);
       }
     };
@@ -113,7 +113,7 @@ const EthiopiaMap = () => {
       loadGeoJson("wereda", "/map/admin3.json");
       loadGeoJson("kebele", "/map/admin4.json");
     }
-  }, []);
+  }, [levels, propertyKeys]);
 
   useEffect(() => {
     const storedSearches = localStorage.getItem("recentSearches");
@@ -133,11 +133,11 @@ const EthiopiaMap = () => {
           return feature;
         });
         setRecent(sanitized);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Failed to parse recent searches", error);
       }
     }
-  }, [geoJsonData]);
+  }, [geoJsonData, levels, propertyKeys]);
 
   const getFeatureName = (feature: GeoJsonFeature): string => {
     let level = feature.properties.level as AdminLevel | undefined;

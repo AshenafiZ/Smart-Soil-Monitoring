@@ -1,4 +1,5 @@
 'use client';
+import { FirebaseError } from 'firebase/app';
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
@@ -35,7 +36,6 @@ export default function LoginPage() {
   const [resetLoading, setResetLoading] = useState(false);
   const router = useRouter();
 
-  // Register service worker and get FCM token
   const registerServiceWorker = async () => {
     if (!('serviceWorker' in navigator && 'PushManager' in window)) {
       console.warn('Service Worker or PushManager not supported.');
@@ -43,7 +43,6 @@ export default function LoginPage() {
     }
 
     try {
-      // Check if service worker file is accessible
       const response = await fetch('/firebase-messaging-sw.js');
       if (!response.ok) {
         throw new Error(`Service worker file not found: ${response.status}`);
@@ -78,19 +77,15 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Authenticate with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Set auth token in a secure cookie for middleware
       const token = await user.getIdToken();
       document.cookie = `authToken=${token}; path=/; Secure; SameSite=Strict`;
 
-      // Get FCM token and update users collection
       const deviceToken = await registerServiceWorker();
       const userRef = doc(db, "users", user.uid);
       try {
-        const userDoc = await getDoc(userRef);
         await setDoc(userRef, {
           deviceToken: deviceToken || '',
           lastLogin: new Date().toISOString(),
@@ -101,24 +96,26 @@ export default function LoginPage() {
         setError('Failed to update user data. Login successful, but notifications may not work.');
       }
 
-      // Fetch user role from Firestore
-      const userDoc = await getDoc(userRef);
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
+      const userDocSnapshot = await getDoc(userRef);
+      if (userDocSnapshot.exists()) {
+        const userData = userDocSnapshot.data();
         const role = userData.role || "main";
         const redirectPath = role === "main" ? "/" : `/${role}`;
         router.push(redirectPath);
       } else {
         setError("User role not found. Please contact support.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMessages: Record<string, string> = {
         "auth/invalid-email": "Invalid email format.",
         "auth/user-not-found": "No user found with this email.",
         "auth/wrong-password": "Incorrect password.",
         "auth/too-many-requests": "Too many attempts. Please try again later.",
       };
-      setError(errorMessages[err.code] || "Failed to log in. Please check your credentials.");
+      const errorMessage = err instanceof FirebaseError && err.code in errorMessages
+        ? errorMessages[err.code]
+        : "Failed to log in. Please check your credentials.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -134,13 +131,16 @@ export default function LoginPage() {
       await sendPasswordResetEmail(auth, resetEmail);
       setResetMessage("Password reset email sent! Check your inbox.");
       setResetEmail("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMessages: Record<string, string> = {
         "auth/invalid-email": "Invalid email format.",
         "auth/user-not-found": "No user found with this email.",
         "auth/too-many-requests": "Too many attempts. Please try again later.",
       };
-      setResetError(errorMessages[err.code] || "Failed to send password reset email.");
+      const errorMessage = err instanceof FirebaseError && err.code in errorMessages
+        ? errorMessages[err.code]
+        : "Failed to send password reset email.";
+      setResetError(errorMessage);
     } finally {
       setResetLoading(false);
     }

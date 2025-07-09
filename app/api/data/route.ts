@@ -1,7 +1,6 @@
-// app/api/data/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
-let dataStore: string[] = []; // simple in-memory store
+const dataStore: string[] = []; 
 
 export async function GET() {
   return NextResponse.json({ data: dataStore });
